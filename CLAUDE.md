@@ -87,3 +87,26 @@ npm run build   # 本番ビルド（dist/）
 - デプロイ先: https://hiruta-cell.github.io/task_board/
 - `main` へプッシュすると `.github/workflows/deploy.yml` が自動でビルド・公開する。
 - 公開パスに合わせ、`vite.config.js` の `base` を本番ビルド時のみ `/task_board/` にしている。
+- `deploy.yml` は、実行対象のコミットが `main` の最新でなければ公開せずに失敗する（古い版での上書き防止）。
+
+### 公開後の確認（「公開済み」と報告する前に必ず行う）
+
+過去に、古いデプロイ（`6727964`）が Actions 画面で再実行され、新しい版が古いビルドで上書きされたことがある。プッシュしただけで「公開済み」と判断しないこと。
+
+1. GitHub API で、HEAD のコミットに対応するワークフロー実行が `completed` / `success` になったことを確認する（`gh` は未インストールのため `curl` で取得する）。
+   ```bash
+   curl -s "https://api.github.com/repos/hiruta-cell/task_board/actions/runs?per_page=3"
+   ```
+2. 公開中の `index.html` が読み込んでいる JS / CSS を取得し、**今回の変更に固有の文字列が含まれているか**を確認する。キャッシュを避けるためクエリ（`?v=乱数`）を付ける。
+   - アセットのファイル名（ハッシュ）が手元のビルドと一致するかどうかだけで判断しない。
+3. ユーザーには、ブラウザのキャッシュが最大10分ほど残ること（`cache-control: max-age=600`）、スーパーリロード（Windows: Ctrl + F5 / Mac: ⌘ + Shift + R）で再読み込みすることを伝える。
+
+### 再デプロイの方法
+
+- Actions 画面の **Run workflow**（`workflow_dispatch`）で実行するか、**最新の実行**を Re-run する。
+- 古い実行は Re-run しない（上記のチェックで失敗するが、そもそも行わない）。
+- ローカルからやり直す場合は空のコミットをプッシュする: `git commit --allow-empty -m "GitHub Pages を最新版で再デプロイ"`
+
+### 演出が表示されないときの確認
+
+- OS の「動きを減らす」設定（Windows: 設定 → アクセシビリティ → 視覚効果 → アニメーション効果 がオフ）では、`prefers-reduced-motion` によって演出を出さない仕様。不具合と判断する前にこの設定を確認する。

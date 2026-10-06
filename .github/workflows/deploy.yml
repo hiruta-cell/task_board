@@ -41,5 +41,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # 古い実行を Re-run したときに古い版で上書きしないよう、
+      # このコミットが main の最新でなければ公開せずに失敗させる
+      - name: main の最新コミットか確認
+        run: |
+          latest=$(git ls-remote "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" refs/heads/main | cut -f1)
+          if [ "$latest" != "${{ github.sha }}" ]; then
+            echo "::error::このコミット（${{ github.sha }}）は main の最新（${latest}）ではないため公開しません。最新の実行を Re-run するか、Run workflow から実行してください。"
+            exit 1
+          fi
       - id: deployment
         uses: actions/deploy-pages@v4
