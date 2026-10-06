@@ -1,5 +1,19 @@
 // タスクボード本体: タスクの追加・完了切替・削除と一覧表示を担う
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+// localStorage の保存キー
+const STORAGE_KEY = 'task-board'
+
+// 保存済みデータを読み込む（無い・壊れている場合は初期値）
+const loadSaved = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
+    if (saved && Array.isArray(saved.tasks)) return saved
+  } catch {
+    // 読み込めなければ初期値で始める
+  }
+  return { tasks: [], nextNo: 1 }
+}
 
 // 日時を「2026/10/06 14:05」形式の文字列にする
 const formatDate = (time) =>
@@ -16,11 +30,20 @@ const formatNo = (no) => `T-${String(no).padStart(3, '0')}`
 
 export default function App() {
   // タスク一覧。completedAt が null なら未完了、数値（完了日時）なら完了
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState(() => loadSaved().tasks)
   // 入力欄のテキスト
   const [text, setText] = useState('')
   // 次に振るタスク番号（削除しても番号は再利用しない）
-  const [nextNo, setNextNo] = useState(1)
+  const [nextNo, setNextNo] = useState(() => loadSaved().nextNo)
+
+  // タスクや番号が変わるたびに localStorage へ保存
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, nextNo }))
+    } catch {
+      // 保存できない環境（プライベートモード等）では保存をあきらめる
+    }
+  }, [tasks, nextNo])
 
   // フォーム送信でタスクを追加（空白のみの入力は無視）
   const addTask = (e) => {
