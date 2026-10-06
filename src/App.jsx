@@ -1,6 +1,16 @@
 // タスクボード本体: タスクの追加・完了切替・削除と一覧表示を担う
 import { useState } from 'react'
 
+// 日時を「2026/10/06 14:05」形式の文字列にする
+const formatDate = (time) =>
+  new Date(time).toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
 export default function App() {
   // タスク一覧。completedAt が null なら未完了、数値（完了日時）なら完了
   const [tasks, setTasks] = useState([])
@@ -72,7 +82,14 @@ export default function App() {
                   checked={Boolean(task.completedAt)}
                   onChange={() => toggleTask(task.id)}
                 />
-                <span className="title">{task.title}</span>
+                <span className="content">
+                  <span className="title">{task.title}</span>
+                  {/* 追加日時と、完了していれば完了日時 */}
+                  <span className="dates">
+                    追加: {formatDate(task.createdAt)}
+                    {task.completedAt && ` ／ 完了: ${formatDate(task.completedAt)}`}
+                  </span>
+                </span>
               </label>
               <button
                 className="delete"

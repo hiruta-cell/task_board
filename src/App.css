@@ -93,6 +93,19 @@ h1 {
   cursor: pointer;
 }
 
+/* タイトルと日時を縦に並べる */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 追加日時・完了日時 */
+.dates {
+  font-size: 0.75rem;
+  color: #888;
+}
+
 /* 完了タスクはグレーアウト＋取り消し線 */
 .task.done {
   background: #e9eaec;
