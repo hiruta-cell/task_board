@@ -10,6 +10,22 @@ task_board — React（Vite）製のタスク管理ボード。
 - `src/App.css` — スタイル
 - 保存: タスクと次のタスク番号を localStorage（キー `task-board`）に保存し、リロード後も復元する
 - 表示順: 未完了（追加順）→ 完了（完了日時の新しい順）
+- デプロイ先: https://hiruta-cell.github.io/task_board/ （GitHub Pages）
+
+## 技術スタック
+
+| 分類 | 使用技術 |
+| --- | --- |
+| UI ライブラリ | React 19（関数コンポーネント＋Hooks: `useState` / `useEffect`） |
+| ビルドツール | Vite 8（`@vitejs/plugin-react`） |
+| 言語 | JavaScript（JSX、ES Modules）※TypeScript は未使用 |
+| スタイル | 素の CSS（`src/App.css`）。CSS 変数で配色・フォントを管理し、`prefers-color-scheme` でダーク／ライトを切替 |
+| フォント | Google Fonts（Chakra Petch / Noto Sans JP / JetBrains Mono） |
+| データ保存 | ブラウザの localStorage（サーバー・DB なし） |
+| 実行環境 | Node.js（ローカル開発）、GitHub Actions は Node 22 でビルド |
+| ホスティング | GitHub Pages（GitHub Actions で自動デプロイ） |
+
+外部ライブラリは必要最小限にする。追加する場合はユーザーに確認してから導入する。
 
 ## コミュニケーション
 
@@ -22,6 +38,20 @@ task_board — React（Vite）製のタスク管理ボード。
   - 関数・状態・主要なブロックには「何をするか／なぜそうするか」を短く書く。
   - コードを読めば分かる自明な処理にはコメントを付けない（書きすぎない）。
   - JSON など、コメントを書けない形式のファイルは対象外。
+
+### 命名規則
+
+| 対象 | 規則 | 例 |
+| --- | --- | --- |
+| コンポーネント | PascalCase。ファイル名もコンポーネント名と同じ `.jsx` | `App` → `App.jsx`、`TaskItem` → `TaskItem.jsx` |
+| コンポーネントの置き場所 | ルートは `src/App.jsx`。新しく分割するコンポーネントは `src/components/` に置く | `src/components/TaskItem.jsx` |
+| コンポーネントの定義 | 関数コンポーネントを `export default function 名前()` で書く | `export default function App()` |
+| 状態（state） | `[名詞, set名詞]` | `[tasks, setTasks]`、`[text, setText]` |
+| イベント処理関数 | 動詞＋対象の camelCase | `addTask`、`toggleTask`、`deleteTask` |
+| 表示用の補助関数 | `render〇〇`（JSX を返す）、`format〇〇`（文字列を整形） | `renderTask`、`formatDate`、`formatNo` |
+| 定数 | UPPER_SNAKE_CASE | `STORAGE_KEY` |
+| CSS クラス | kebab-case。状態は別クラスを付け足して表す | `.task-list`、`.add-form`、`.task.done` |
+| CSS 変数 | `--役割` の kebab-case | `--bg`、`--accent`、`--font-mono` |
 
 ## Git / GitHub 運用ルール
 
@@ -53,6 +83,6 @@ npm run build   # 本番ビルド（dist/）
 
 ## 公開（GitHub Pages）
 
-- URL: https://hiruta-cell.github.io/task_board/
+- デプロイ先: https://hiruta-cell.github.io/task_board/
 - `main` へプッシュすると `.github/workflows/deploy.yml` が自動でビルド・公開する。
 - 公開パスに合わせ、`vite.config.js` の `base` を本番ビルド時のみ `/task_board/` にしている。
