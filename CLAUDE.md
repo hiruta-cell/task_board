@@ -50,3 +50,9 @@ npm install     # 依存パッケージのインストール
 npm run dev     # 開発サーバー起動
 npm run build   # 本番ビルド（dist/）
 ```
+
+## 公開（GitHub Pages）
+
+- URL: https://hiruta-cell.github.io/task_board/
+- `main` へプッシュすると `.github/workflows/deploy.yml` が自動でビルド・公開する。
+- 公開パスに合わせ、`vite.config.js` の `base` を本番ビルド時のみ `/task_board/` にしている。
