@@ -1,5 +1,6 @@
 // タスクボード本体: タスクの追加・完了切替・削除と一覧表示を担う
 import { useEffect, useState } from 'react'
+import ToggleEffect from './components/ToggleEffect.jsx'
 
 // localStorage の保存キー
 const STORAGE_KEY = 'task-board'
@@ -35,6 +36,10 @@ export default function App() {
   const [text, setText] = useState('')
   // 次に振るタスク番号（削除しても番号は再利用しない）
   const [nextNo, setNextNo] = useState(() => loadSaved().nextNo)
+  // 再生中の切替演出（連打しても重ねて表示できるよう配列で持つ）
+  const [effects, setEffects] = useState([])
+  // 直前に切り替えたタスク。移動先の行を光らせるのに使う
+  const [flash, setFlash] = useState(null)
 
   // タスクや番号が変わるたびに localStorage へ保存
   useEffect(() => {
@@ -44,6 +49,13 @@ export default function App() {
       // 保存できない環境（プライベートモード等）では保存をあきらめる
     }
   }, [tasks, nextNo])
+
+  // 行の光る演出は少し経ったら解除する
+  useEffect(() => {
+    if (!flash) return
+    const timer = setTimeout(() => setFlash(null), 1000)
+    return () => clearTimeout(timer)
+  }, [flash])
 
   // フォーム送信でタスクを追加（空白のみの入力は無視）
   const addTask = (e) => {
@@ -59,12 +71,31 @@ export default function App() {
   }
 
   // 完了 ⇔ 未完了を切り替え。完了時は現在時刻を記録し、並び順に使う
-  const toggleTask = (id) => {
+  // あわせてチェックボックスの位置を中心に演出を再生する
+  const toggleTask = (id, e) => {
+    const task = tasks.find((t) => t.id === id)
+    const type = task.completedAt ? 'undo' : 'done'
+    const rect = e.currentTarget.getBoundingClientRect()
+    setEffects((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type,
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      },
+    ])
+    setFlash({ id, type })
     setTasks((prev) =>
       prev.map((t) =>
         t.id === id ? { ...t, completedAt: t.completedAt ? null : Date.now() } : t,
       ),
     )
+  }
+
+  // 再生し終えた演出を取り除く
+  const removeEffect = (effectId) => {
+    setEffects((prev) => prev.filter((f) => f.id !== effectId))
   }
 
   // 指定したタスクを削除
@@ -83,34 +114,39 @@ export default function App() {
   // 完了率（タスクが無いときは 0%）
   const progress = tasks.length ? Math.round((doneTasks.length / tasks.length) * 100) : 0
 
-  // タスク1行分の表示
-  const renderTask = (task) => (
-    <li key={task.id} className={task.completedAt ? 'task done' : 'task'}>
-      <label className="task-main">
-        <input
-          type="checkbox"
-          checked={Boolean(task.completedAt)}
-          onChange={() => toggleTask(task.id)}
-        />
-        <span className="content">
-          <span className="title">{task.title}</span>
-          {/* タスク番号・追加日時と、完了していれば完了日時 */}
-          <span className="meta">
-            <span className="no">{formatNo(task.no)}</span>
-            <span>追加 {formatDate(task.createdAt)}</span>
-            {task.completedAt && <span>完了 {formatDate(task.completedAt)}</span>}
+  // タスク1行分の表示（切り替えた直後の行には光る演出用のクラスを付ける）
+  const renderTask = (task) => {
+    const classes = ['task']
+    if (task.completedAt) classes.push('done')
+    if (flash?.id === task.id) classes.push(`flash-${flash.type}`)
+    return (
+      <li key={task.id} className={classes.join(' ')}>
+        <label className="task-main">
+          <input
+            type="checkbox"
+            checked={Boolean(task.completedAt)}
+            onChange={(e) => toggleTask(task.id, e)}
+          />
+          <span className="content">
+            <span className="title">{task.title}</span>
+            {/* タスク番号・追加日時と、完了していれば完了日時 */}
+            <span className="meta">
+              <span className="no">{formatNo(task.no)}</span>
+              <span>追加 {formatDate(task.createdAt)}</span>
+              {task.completedAt && <span>完了 {formatDate(task.completedAt)}</span>}
+            </span>
           </span>
-        </span>
-      </label>
-      <button
-        className="delete"
-        onClick={() => deleteTask(task.id)}
-        aria-label={`「${task.title}」を削除`}
-      >
-        削除
-      </button>
-    </li>
-  )
+        </label>
+        <button
+          className="delete"
+          onClick={() => deleteTask(task.id)}
+          aria-label={`「${task.title}」を削除`}
+        >
+          削除
+        </button>
+      </li>
+    )
+  }
 
   return (
     <main className="board">
@@ -170,6 +206,11 @@ export default function App() {
           )}
         </>
       )}
+
+      {/* 完了切替の演出（画面全体に重ねて表示） */}
+      {effects.map((f) => (
+        <ToggleEffect key={f.id} type={f.type} x={f.x} y={f.y} onEnd={() => removeEffect(f.id)} />
+      ))}
     </main>
   )
 }

@@ -7,6 +7,7 @@
 task_board — React（Vite）製のタスク管理ボード。
 
 - `src/App.jsx` — タスクの追加・完了切替・削除、表示順のロジック
+- `src/components/ToggleEffect.jsx` — 完了／未完了切替時のアニメ風演出（爆発・集中線・カットイン文字）
 - `src/App.css` — スタイル
 - 保存: タスクと次のタスク番号を localStorage（キー `task-board`）に保存し、リロード後も復元する
 - 表示順: 未完了（追加順）→ 完了（完了日時の新しい順）
