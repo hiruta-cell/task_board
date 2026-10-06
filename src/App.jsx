@@ -1,9 +1,13 @@
+// タスクボード本体: タスクの追加・完了切替・削除と一覧表示を担う
 import { useState } from 'react'
 
 export default function App() {
+  // タスク一覧。completedAt が null なら未完了、数値（完了日時）なら完了
   const [tasks, setTasks] = useState([])
+  // 入力欄のテキスト
   const [text, setText] = useState('')
 
+  // フォーム送信でタスクを追加（空白のみの入力は無視）
   const addTask = (e) => {
     e.preventDefault()
     const title = text.trim()
@@ -15,6 +19,7 @@ export default function App() {
     setText('')
   }
 
+  // 完了 ⇔ 未完了を切り替え。完了時は現在時刻を記録し、並び順に使う
   const toggleTask = (id) => {
     setTasks((prev) =>
       prev.map((t) =>
@@ -23,6 +28,7 @@ export default function App() {
     )
   }
 
+  // 指定したタスクを削除
   const deleteTask = (id) => {
     setTasks((prev) => prev.filter((t) => t.id !== id))
   }
@@ -39,6 +45,7 @@ export default function App() {
     <main className="board">
       <h1>Task Board</h1>
 
+      {/* タスク追加フォーム */}
       <form className="add-form" onSubmit={addTask}>
         <input
           type="text"
@@ -52,6 +59,7 @@ export default function App() {
         </button>
       </form>
 
+      {/* タスク一覧（未完了 → 完了の順に表示） */}
       {tasks.length === 0 ? (
         <p className="empty">タスクはまだありません</p>
       ) : (
